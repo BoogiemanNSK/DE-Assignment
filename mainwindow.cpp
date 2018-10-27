@@ -2,7 +2,8 @@
 #include "ui_mainwindow.h"
 
 double df(double, double);
-double f(double);
+double ivp(double, double);
+double f(double, double);
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -12,7 +13,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->initX->setText(QString::number(1));
     ui->initY->setText(QString::number(0.5));
     ui->maxX->setText(QString::number(5));
-    ui->pointsNum->setText(QString::number(20));
+    ui->minY->setText(QString::number(-2));
+    ui->maxY->setText(QString::number(2));
+    ui->pointsNum->setText(QString::number(100));
 }
 
 MainWindow::~MainWindow()
@@ -27,7 +30,11 @@ void MainWindow::on_pushButton_clicked()
     double X = ui->maxX->toPlainText().toDouble();
     int N = ui->pointsNum->toPlainText().toInt();
 
+    double minY = ui->minY->toPlainText().toDouble();
+    double maxY = ui->maxY->toPlainText().toDouble();
+
     double h = (X - x0) / (N - 1);
+    double C = ivp(x0, y0);
     QVector<double> x(N), y(N), y_e(N), y_ie(N), y_rk(N);
 
     x[0] = x0;
@@ -40,7 +47,7 @@ void MainWindow::on_pushButton_clicked()
 
     // Original Equation
     for (int i = 1; i < N; i++) {
-        y[i] = f(x[i]);
+        y[i] = f(x[i], C);
     }
 
     // Euler Method
@@ -66,40 +73,42 @@ void MainWindow::on_pushButton_clicked()
     ui->graph->clearGraphs();
 
     ui->graph->addGraph();
-    ui->graph->addGraph();
-    ui->graph->addGraph();
-    ui->graph->addGraph();
-
     ui->graph->graph(0)->setData(x, y);
-    ui->graph->graph(1)->setData(x, y_e);
-    ui->graph->graph(2)->setData(x, y_ie);
-    ui->graph->graph(3)->setData(x, y_rk);
-
+    ui->graph->graph(0)->setName("Original Equation");
     ui->graph->graph(0)->setPen(QColor(40, 40, 40, 255));
-    ui->graph->graph(1)->setPen(QColor(0, 0, 255, 255));
-    ui->graph->graph(2)->setPen(QColor(255, 0, 0, 255));
-    ui->graph->graph(3)->setPen(QColor(0, 255, 50, 255));
-
     ui->graph->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 2));
+
+    ui->graph->addGraph();
+    ui->graph->graph(1)->setData(x, y_e);
+    ui->graph->graph(1)->setName("Euler Method");
+    ui->graph->graph(1)->setPen(QColor(0, 0, 255, 255));
     ui->graph->graph(1)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 2));
+
+    ui->graph->addGraph();
+    ui->graph->graph(2)->setData(x, y_ie);
+    ui->graph->graph(2)->setName("Improved Euler Method");
+    ui->graph->graph(2)->setPen(QColor(255, 0, 0, 255));
     ui->graph->graph(2)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 2));
+
+    ui->graph->addGraph();
+    ui->graph->graph(3)->setData(x, y_rk);
+    ui->graph->graph(3)->setName("Runge-Kutta Method");
+    ui->graph->graph(3)->setPen(QColor(0, 255, 50, 255));
     ui->graph->graph(3)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 2));
 
-    ui->graph->xAxis->setLabel("x");
-    ui->graph->yAxis->setLabel("y");
+    ui->graph->addGraph();
+    ui->graph->graph(4)->setPen(QColor(0, 255, 50, 255));
+    ui->graph->graph(4)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 2));
+
+    ui->graph->xAxis->setLabel("X");
+    ui->graph->yAxis->setLabel("Y");
     ui->graph->xAxis->setRange(x0, X);
-
-    double minY = y[0], maxY = y[0];
-    for (int i=1; i<N; i++)
-    {
-        if (y[i]<minY) minY = y[i];
-        if (y_e[i]<minY) minY = y_e[i];
-        if (y_ie[i]<minY) minY = y_ie[i];
-        if (y_rk[i]<minY) minY = y_rk[i];
-
-        if (y[i]>maxY) maxY = y[i];
-    }
     ui->graph->yAxis->setRange(minY, maxY);
+
+    ui->graph->legend->setVisible(true);
+    ui->graph->legend->setBrush(QBrush(QColor(255,255,255,150)));
+    ui->graph->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignRight|Qt::AlignTop);
+
     ui->graph->replot();
 }
 
@@ -107,6 +116,13 @@ double df(double x, double y) {
     return pow(x, 3) * pow(y, 4) - (y / x);
 }
 
-double f(double x) {
-    return pow(1.0 / (11.0*pow(x, 3) - 3.0*pow(x, 4)), (1.0 / 3.0));
+double ivp(double x0, double y0) {
+    double r = 1 / (pow(x0,3) * pow(y0,3));
+    return r + 3*x0;
+}
+
+double f(double x, double C) {
+    double r = 1 / (C * pow(x, 3) - 3 * pow(x, 4));
+    double p = (r > 0) ? pow(r, (1.0/3)) : (-1)*pow((-1) * r, (1.0/3));
+    return p;
 }
