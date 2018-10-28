@@ -1,9 +1,11 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <limits>
 
 double df(double, double);
 double ivp(double, double);
 double f(double, double);
+double asymp(double);
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -36,33 +38,46 @@ void MainWindow::on_pushButton_clicked()
     double h = (X - x0) / (N - 1);
     double C = ivp(x0, y0);
     QVector<double> x(N), y(N), y_e(N), y_ie(N), y_rk(N);
+    QVector<double> x_a(4), y_a(4);
+
+    double a = asymp(C);
+    x_a[0] = x_a[1] = 0 < a ? 0 : a;
+    x_a[2] = x_a[3] = 0 < a ? a : 0;
+    y_a[0] = y_a[3] = -pow(10, 300);
+    y_a[1] = y_a[2] = pow(10, 300);
 
     x[0] = x0;
     y[0] = y_e[0] = y_ie[0] = y_rk[0] = y0;
 
+    int i;
+
     // X Axis
-    for (int i = 1; i < N; i++) {
+    for (i = 1; i < N; i++) {
         x[i] = x[i - 1] + h;
     }
 
-    // Original Equation
-    for (int i = 1; i < N; i++) {
-        y[i] = f(x[i], C);
-    }
-
-    // Euler Method
-    for (int i = 0; i < N - 1; i++) {
-        y_e[i + 1] = y_e[i] + h * df(x[i], y_e[i]);
-    }
-
-    // Improved Euler Method
-    for (int i = 0; i < N - 1; i++) {
-        y_ie[i + 1] = y_ie[i] + (h / 2) * (df(x[i], y_ie[i]) + df(x[i + 1], y_e[i + 1]));
-    }
-
-    // Runge-Kutta Method
     double k1, k2, k3, k4;
     for (int i = 0; i < N - 1; i++) {
+        // Original
+        y[i + 1] = f(x[i + 1], C);
+
+        /*// Asymptotes check
+        if ((x[i] <= x_a[0] && x[i + 1] >= x_a[0]) ||
+                (x[i] <= x_a[2] && x[i + 1] >= x_a[2])) {
+            y[i + 1] = f(x[i + 1], C);
+            y_e[i + 1] = f(x[i + 1], C);
+            y_ie[i + 1] = f(x[i + 1], C);
+            y_rk[i + 1] = f(x[i + 1], C);
+            continue;
+        }*/
+
+        // Euler
+        y_e[i + 1] = y_e[i] + h * df(x[i], y_e[i]);
+
+        // Improved Euler
+        y_ie[i + 1] = y_ie[i] + (h / 2) * (df(x[i], y_ie[i]) + df(x[i + 1], y_e[i + 1]));
+
+        // Runge-Kutta
         k1 = df(x[i], y_rk[i]);
         k2 = df(x[i] + (h / 2), y_rk[i] + (h / 2) * k1);
         k3 = df(x[i] + (h / 2), y_rk[i] + (h / 2) * k2);
@@ -74,6 +89,7 @@ void MainWindow::on_pushButton_clicked()
 
     ui->graph->addGraph();
     ui->graph->graph(0)->setData(x, y);
+    ui->graph->graph(0)->data()->erase(ui->graph->graph(0)->data()->find(2));
     ui->graph->graph(0)->setName("Original Equation");
     ui->graph->graph(0)->setPen(QColor(40, 40, 40, 255));
     ui->graph->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 2));
@@ -97,8 +113,10 @@ void MainWindow::on_pushButton_clicked()
     ui->graph->graph(3)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 2));
 
     ui->graph->addGraph();
-    ui->graph->graph(4)->setPen(QColor(0, 255, 50, 255));
-    ui->graph->graph(4)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 2));
+    ui->graph->graph(4)->setData(x_a, y_a);
+    ui->graph->graph(4)->setName("Asymptotes");
+    ui->graph->graph(4)->setPen(QColor(20, 20, 20, 128));
+    ui->graph->graph(4)->setPen(Qt::DashLine);
 
     ui->graph->xAxis->setLabel("X");
     ui->graph->yAxis->setLabel("Y");
@@ -125,4 +143,8 @@ double f(double x, double C) {
     double r = 1 / (C * pow(x, 3) - 3 * pow(x, 4));
     double p = (r > 0) ? pow(r, (1.0/3)) : (-1)*pow((-1) * r, (1.0/3));
     return p;
+}
+
+double asymp(double C) {
+    return C / 3.0;
 }
