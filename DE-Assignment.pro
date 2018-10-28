@@ -27,11 +27,15 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-        qcustomplot.cpp
+        qcustomplot.cpp \
+        maingraph.cpp \
+    errorgraph.cpp
 
 HEADERS += \
         mainwindow.h \
-        qcustomplot.h
+        qcustomplot.h \
+        maingraph.h \
+    errorgraph.h
 
 FORMS += \
         mainwindow.ui
