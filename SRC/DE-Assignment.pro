@@ -29,13 +29,13 @@ SOURCES += \
         mainwindow.cpp \
         qcustomplot.cpp \
         maingraph.cpp \
-    errorgraph.cpp
+        errorgraph.cpp
 
 HEADERS += \
         mainwindow.h \
         qcustomplot.h \
         maingraph.h \
-    errorgraph.h
+        errorgraph.h
 
 FORMS += \
         mainwindow.ui
