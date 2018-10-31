@@ -1,4 +1,4 @@
-# Differential Equation Gaph Plotting Application
+# Differential Equation Graph Plotting Application
 
 This app shows how different numeric methods (Euler, Improved Euler, Runge-Kutta) can be used to solve a first-order DE y'=x^3y^3-x/y and also plots graph of its analytical solution to compare results and show effectiveness of each method.
 
