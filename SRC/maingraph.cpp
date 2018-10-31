@@ -11,10 +11,10 @@ MainGraph::MainGraph(double x0, double y0, double X, int N) {
 
     // Asymptotes
     double a = asymp(C);
-    x_a[0] = x_a[1] = 0 < a ? 0 : a;
+    x_a[0] = x_a[1] = 0 < a ? 0 : a; // Asymptote with less x goes earlier
     x_a[2] = x_a[3] = 0 < a ? a : 0;
-    y_a[0] = y_a[3] = -pow(10, 300);
-    y_a[1] = y_a[2] = pow(10, 300);
+    y_a[0] = y_a[3] = -pow(10, 300); // ~ Min Double
+    y_a[1] = y_a[2] = pow(10, 300); // ~ Max Double
 
     // X Axis
     double t = x0;
